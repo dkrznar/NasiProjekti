@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ projekt.naziv }}{% endblock %}
+ 
+{% block sadrzaj %}
+<div class="row">
+    <!-- Lijevo: detalji projekta -->
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h4 class="card-title">{{ projekt.naziv }}</h4>
+                    <span class="badge fs-6
+                        {% if projekt.status == 'Završen' %}bg-success
+                        {% elif projekt.status == 'U tijeku' %}bg-primary
+                        {% elif projekt.status == 'Odbijen' %}bg-danger
+                        {% elif projekt.status == 'Prijavljen' %}bg-info
+                        {% else %}bg-secondary{% endif %}">{{ projekt.status }}</span>
+                </div>
+ 
+                <table class="table table-sm mt-3">
+                    <tr><th class="w-25">Klasa predmeta</th><td>{{ projekt.klasa or '–' }}</td></tr>
+                    <tr><th>Naziv poziva</th><td>{{ projekt.naziv_poziva or '–' }}</td></tr>
+                    <tr><th>Nadležno tijelo</th><td>{{ projekt.nadlezno_tijelo or '–' }}</td></tr>
+                    <tr><th>Datum početka</th><td>{{ projekt.datum_pocetka.strftime('%d.%m.%Y.') if projekt.datum_pocetka else '–' }}</td></tr>
+                    <tr><th>Datum završetka</th><td>{{ projekt.datum_zavrsetka.strftime('%d.%m.%Y.') if projekt.datum_zavrsetka else '–' }}</td></tr>
+                    <tr><th>Dobiveni iznos</th><td>{{ '%.2f'|format(projekt.dobiveni_iznos or 0) }} €</td></tr>
+                    <tr><th>Vlastiti iznos</th><td>{{ '%.2f'|format(projekt.nas_iznos or 0) }} €</td></tr>
+                    <tr><th>Ukupan iznos</th><td class="fw-semibold">{{ '%.2f'|format(projekt.ukupan_iznos) }} €</td></tr>
+                </table>
+ 
+                {% if projekt.opis %}
+                <p class="mb-1"><strong>Opis:</strong></p>
+                <p>{{ projekt.opis }}</p>
+                {% endif %}
+ 
+                <p class="text-muted small mb-0">
+                    Unio/la: {{ projekt.unio or 'nepoznato' }},
+                    {{ projekt.vrijeme_unosa.strftime('%d.%m.%Y. u %H:%M') if projekt.vrijeme_unosa else '' }}
+                </p>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- Desno: bilješke -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Bilješke</h5>
+ 
+                <form method="POST" action="{{ url_for('nova_biljeska', projekt_id=projekt.id) }}" class="mb-3">
+                    <textarea name="tekst" class="form-control mb-2" rows="2"
+                              placeholder="Nova bilješka..." required></textarea>
+                    <button type="submit" class="btn btn-primary btn-sm">Dodaj bilješku</button>
+                </form>
+ 
+                {% if projekt.biljeske %}
+                    {% for b in projekt.biljeske %}
+                    <div class="border-start border-3 border-primary ps-3 mb-3">
+                        <p class="mb-1">{{ b.tekst }}</p>
+                        <p class="text-muted small mb-0">
+                            {{ b.ime or 'nepoznato' }} ·
+                            {{ b.vrijeme.strftime('%d.%m.%Y. u %H:%M') if b.vrijeme else '' }}
+                        </p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">Još nema bilješki.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block sadrzaj %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Pregled projekta</h5>
+
+        {% if projekti %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Naziv projekta</th>
+                        <th>Naziv poziva</th>
+                        <th>Nadležno tijelo</th>
+                        <th>Datum početka</th>
+                        <th>Datum završetka</th>
+                        <th>Status</th>
+                        <th class="text-end">Dobiveni iznos</th>
+                        <th class="text-end">Vlastiti iznos</th>
+                        <th class="text-end">Ukupan iznos</th>
+                        <th>Opis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in projekti %}
+                    <tr onclick="window.location='{{ url_for('projekt_detalji', projekt_id=p.id)}}'" style="cursor: pointer">
+                        <td class="fw-semibold">{{p.naziv}}</td>
+                        <td>{{p.naziv_poziva or '-'}}</td>
+                        <td>{{p.nadlezno_tijelo or '-'}}</td>
+                        <td>{{p.datum_pocetka.strftime('%d.%m.%Y.') if p.datum_pocetka else '-'}}</td>
+                        <td>{{p.datum_zavrsetka.strftime('%d.%m.%Y.') if p.datum_zavrsetka else '-'}}</td>
+                        <td>
+                            <span class="badge
+                                {% if p.status == 'Završen' %}bg-success
+                                {% elif p.status == 'U tijeku' %}bg-primary
+                                {% elif p.status == 'Odbijen' %}bg-danger
+                                {% elif p.status == 'Prijavljen' %}bg-info
+                                {% else %}bg-secondary{% endif %}">{{ p.status }}
+                            </span>
+                        </td>
+                        <td class="text-end">{{ '%.2f'|format(p.dobiveni_iznos or 0) }} €</td>
+                        <td class="text-end">{{ '%.2f'|format(p.nas_iznos or 0) }} €</td>
+                        <td class="text-end fw-semibold">{{ '%.2f'|format(p.ukupan_iznos) }} €</td>
+                        <td class="text-truncate" style="max-width: 200px">{{ p.opis or '' }}</td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Još nema unesenih projekata. Klikni na <strong>Novi projekt</strong></p>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
