@@ -236,4 +236,6 @@ def provjeri_ime():
         return redirect(url_for("postavi_ime", next=request.url))
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port =5000)
+    from waitress import serve
+    print("Aplikacija radi na http://0.0.0:5000")
+    serve(app, host="0.0.0.0", port=5000)
