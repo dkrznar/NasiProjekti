@@ -22,7 +22,6 @@ class Projekt(db.Model):
     datum_ugovora_financiranje = db.Column(db.Date)
     datum_ugovora_nabava = db.Column(db.Date)
     izvodac = db.Column(db.String(200))
-    datum_aneksa = db.Column(db.Date)
     rok_izvrsenja = db.Column(db.Date)
 
     #pracenje unosa
@@ -40,6 +39,14 @@ class Projekt(db.Model):
         lazy = True,
     )
 
+    aneksi = db.relationship(
+        "Aneks",
+        backref="projekt",
+        cascade="all, delete-orphan",
+        order_by="Aneks.datum.desc()",
+        lazy=True,
+    )
+
     @property
     def ukupan_iznos(self):
         return round((self.dobiveni_iznos or 0) + (self.nas_iznos or 0), 2)
@@ -54,4 +61,11 @@ class Biljeska(db.Model):
     ime = db.Column(db.String(100))
     vrijeme = db.Column(db.DateTime, default = datetime.now)
 
+class Aneks(db.Model):
+    __tablename__ = "aneksi"
 
+    id = db.Column(db.Integer, primary_key=True)
+    projekt_id = db.Column(db.Integer, db.ForeignKey("projekti.id"), nullable=False)
+    datum = db.Column(db.Date, nullable=False)
+    napomena = db.Column(db.String(300))   # npr. "produljenje roka za 60 dana"
+    dodao = db.Column(db.String(100))

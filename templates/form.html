@@ -68,11 +68,6 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">Datum aneksa ugovora</label>
-                    <input type="date" name="datum_aneksa" class="form-control" value="{{ projekt.datum_aneksa.strftime('%Y-%m-%d') if projekt and projekt.datum_aneksa else ''}}">
-                </div>
-
-                <div class="col-md-3">
                     <label class="form-label">Rok izvršenja</label>
                     <input type="date" name="rok_izvrsenja" class="form-control" value="{{ projekt.rok_izvrsenja.strftime('%Y-%m-%d') if projekt and projekt.rok_izvrsenja else ''}}">
                 </div>

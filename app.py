@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from datetime import datetime
-from models import db, Projekt, Biljeska, STATUSI
+from models import db, Projekt, Biljeska, STATUSI, Aneks
 from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.styles import Font
@@ -68,7 +68,6 @@ def novi_projekt():
             datum_ugovora_financiranje=parsiraj_datum(request.form.get("datum_ugovora_financiranje")),
             datum_ugovora_nabava=parsiraj_datum(request.form.get("datum_ugovora_nabava")),
             izvodac=request.form.get("izvodac", "").strip(),
-            datum_aneksa=parsiraj_datum(request.form.get("datum_aneksa")),
             rok_izvrsenja=parsiraj_datum(request.form.get("rok_izvrsenja")),
             unio=request.cookies.get("korisnik"),
         )
@@ -99,7 +98,6 @@ def uredi_projekt(projekt_id):
         projekt.datum_ugovora_financiranje=parsiraj_datum(request.form.get("datum_ugovora_financiranje"))
         projekt.datum_ugovora_nabava=parsiraj_datum(request.form.get("datum_ugovora_nabava"))
         projekt.izvodac=request.form.get("izvodac", "").strip()
-        projekt.datum_aneksa=parsiraj_datum(request.form.get("datum_aneksa"))
         projekt.rok_izvrsenja=parsiraj_datum(request.form.get("rok_izvrsenja"))
         projekt.izmijenio=request.cookies.get("korisnik")
         projekt.vrijeme_izmjene = datetime.now()
@@ -122,6 +120,29 @@ def obrisi_projekt(projekt_id):
 def projekt_detalji(projekt_id):
     projekt = Projekt.query.get_or_404(projekt_id)
     return render_template("projekt_detalji.html", projekt=projekt)
+
+@app.route("/projekt/<int:projekt_id>/aneks", methods=["POST"])
+def novi_aneks(projekt_id):
+    projekt = Projekt.query.get_or_404(projekt_id)
+    a = Aneks(
+        projekt_id=projekt.id,
+        datum=parsiraj_datum(request.form.get("datum")),
+        napomena=request.form.get("napomena", "").strip(),
+        dodao=request.cookies.get("korisnik"),
+    )
+    db.session.add(a)
+    db.session.commit()
+    flash("Aneks je dodan.", "success")
+    return redirect(url_for("projekt_detalji", projekt_id=projekt.id))
+
+@app.route("/aneks/<int:aneks_id>/obrisi", methods=["POST"])
+def obrisi_aneks(aneks_id):
+    a = Aneks.query.get_or_404(aneks_id)
+    projekt_id = a.projekt_id
+    db.session.delete(a)
+    db.session.commit()
+    flash("Aneks je obrisan.", "warning")
+    return redirect(url_for("projekt_detalji", projekt_id=projekt_id))
 
 @app.route("/projekt/<int:projekt_id>/biljeska", methods=["POST"])
 def nova_biljeska(projekt_id):
@@ -167,7 +188,7 @@ def export_excel():
                  "Datum početka", "Datum završetka", "Status",
                  "Dobiveni iznos (€)", "Vlastiti iznos (€)", "Ukupan iznos (€)",
                  "Ugovor o financiranju", "Ugovor o nabavi", "Izvođač",
-                 "Datum aneksa", "Rok izvršenja", "Opis", "Unio/la"]
+                 "Aneksi", "Rok izvršenja", "Opis", "Unio/la"]
     ws.append(zaglavlje)
     for celija in ws[1]:
         celija.font = Font(bold=True)
@@ -182,7 +203,7 @@ def export_excel():
             dat(p.datum_pocetka), dat(p.datum_zavrsetka), p.status,
             p.dobiveni_iznos or 0, p.nas_iznos or 0, p.ukupan_iznos,
             dat(p.datum_ugovora_financiranje), dat(p.datum_ugovora_nabava),
-            p.izvodac, dat(p.datum_aneksa), dat(p.rok_izvrsenja),
+            p.izvodac, ", ".join(a.datum.strftime("%d.%m.%Y.") for a in p.aneksi), dat(p.rok_izvrsenja),
             p.opis, p.unio,
         ])
 
