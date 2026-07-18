@@ -1,61 +1,87 @@
 {% extends "base.html" %}
-{% block tite %}Novi projekt{% endblock %}
+{% block title %}Novi projekt/Uredi projekt{% endblock %}
 
 {% block sadrzaj %}
 <div class="card shadow-sm">
     <div class="card-body">
-        <h5 class="card-title mb-3">Novi projekt</h5>
+        <h5 class="card-title mb-3">{{ 'Uredi projekt' if projekt else 'Novi projekt' }}</h5>
  
         <form method="POST">
             <div class="row g-3">
                 <div class="col-md-8">
                     <label class="form-label">Naziv projekta</label>
-                    <input type="text" name="naziv" class="form-control" required>
+                    <input type="text" name="naziv" class="form-control" required value="{{ projekt.naziv if projekt else ''}}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Klasa predmeta</label>
-                    <input type="text" name="klasa" class="form-control" placeholder="npr. 402-08/26-01/15">
+                    <input type="text" name="klasa" class="form-control" placeholder="npr. 402-08/26-01/15" value="{{ projekt.klasa if projekt else ''}}">
                 </div>
  
                 <div class="col-md-3">
                     <label class="form-label">Datum početka</label>
-                    <input type="date" name="datum_pocetka" class="form-control">
+                    <input type="date" name="datum_pocetka" class="form-control" value="{{ projekt.datum_pocetka.strftime('%Y-%m-%d') if projekt and projekt.datum_pocetka else ''}}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Datum završetka</label>
-                    <input type="date" name="datum_zavrsetka" class="form-control">
+                    <input type="date" name="datum_zavrsetka" class="form-control" value="{{ projekt.datum_zavrsetka.strftime('%Y-%m-%d') if projekt and projekt.datum_zavrsetka else ''}}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Status</label>
                     <select name="status" class="form-select">
                         {% for s in statusi %}
-                        <option value="{{ s }}">{{ s }}</option>
+                        <option value="{{ s }}" {% if projekt and projekt.status == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
                     </select>
                 </div>
  
                 <div class="col-md-6">
                     <label class="form-label">Naziv poziva</label>
-                    <input type="text" name="naziv_poziva" class="form-control">
+                    <input type="text" name="naziv_poziva" class="form-control" value="{{ projekt.naziv_poziva if projekt else ''}}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Nadležno tijelo</label>
-                    <input type="text" name="nadlezno_tijelo" class="form-control" placeholder="npr. Ministarstvo regionalnoga razvoja">
+                    <input type="text" name="nadlezno_tijelo" class="form-control" placeholder="npr. Ministarstvo regionalnoga razvoja" value="{{ projekt.nadlezno_tijelo if projekt else ''}}">
                 </div>
  
                 <div class="col-md-4">
                     <label class="form-label">Dobiveni iznos (€)</label>
-                    <input type="number" step="0.01" min="0" name="dobiveni_iznos" class="form-control" value="0">
+                    <input type="number" step="0.01" min="0" name="dobiveni_iznos" class="form-control" value="{{ projekt.dobiveni_iznos if projekt else 0}}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Naš iznos (€)</label>
-                    <input type="number" step="0.01" min="0" name="nas_iznos" class="form-control" value="0">
+                    <input type="number" step="0.01" min="0" name="nas_iznos" class="form-control" value="{{ projekt.nas_iznos if projekt else 0}}">
                 </div>
  
                 <div class="col-12">
                     <label class="form-label">Opis</label>
-                    <textarea name="opis" class="form-control" rows="3"></textarea>
+                    <textarea name="opis" class="form-control" rows="3">{{ projekt.opis if projekt else '' }}</textarea>
                 </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Datum potpisa ugovora za financiranje</label>
+                    <input type="date" name="datum_ugovora_financiranje" class="form-control" value="{{ projekt.datum_ugovora_financiranje.strftime('%Y-%m-%d') if projekt and projekt.datum_ugovora_financiranje else ''}}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Datum potpisa ugovora nabave</label>
+                    <input type="date" name="datum_ugovora_nabava" class="form-control" value="{{ projekt.datum_ugovora_nabava.strftime('%Y-%m-%d') if projekt and projekt.datum_ugovora_nabava else ''}}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Datum aneksa ugovora</label>
+                    <input type="date" name="datum_aneksa" class="form-control" value="{{ projekt.datum_aneksa.strftime('%Y-%m-%d') if projekt and projekt.datum_aneksa else ''}}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Rok izvršenja</label>
+                    <input type="date" name="rok_izvrsenja" class="form-control" value="{{ projekt.rok_izvrsenja.strftime('%Y-%m-%d') if projekt and projekt.rok_izvrsenja else ''}}">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Izvođač</label>
+                    <input type="text" name="izvodac" class="form-control" value="{{ projekt.izvodac if projekt else ''}}">
+                </div>
+
             </div>
  
             <div class="mt-4">

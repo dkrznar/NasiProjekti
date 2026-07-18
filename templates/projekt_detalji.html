@@ -26,8 +26,17 @@
                     <tr><th>Dobiveni iznos</th><td>{{ '%.2f'|format(projekt.dobiveni_iznos or 0) }} €</td></tr>
                     <tr><th>Vlastiti iznos</th><td>{{ '%.2f'|format(projekt.nas_iznos or 0) }} €</td></tr>
                     <tr><th>Ukupan iznos</th><td class="fw-semibold">{{ '%.2f'|format(projekt.ukupan_iznos) }} €</td></tr>
+                    <tr><th>Ugovor o financiranju</th><td>{{ projekt.datum_ugovora_financiranje.strftime('%d.%m.%Y.') if projekt.datum_ugovora_financiranje else '–' }}</td></tr>
+                    <tr><th>Ugovor o nabavi</th><td>{{ projekt.datum_ugovora_nabava.strftime('%d.%m.%Y.') if projekt.datum_ugovora_nabava else '–' }}</td></tr>
+                    <tr><th>Izvođač</th><td>{{ projekt.izvodac or '–' }}</td></tr>
+                    <tr><th>Datum aneksa</th><td>{{ projekt.datum_aneksa.strftime('%d.%m.%Y.') if projekt.datum_aneksa else '–' }}</td></tr>
+                    <tr><th>Rok izvršenja</th><td>{{ projekt.rok_izvrsenja.strftime('%d.%m.%Y.') if projekt.rok_izvrsenja else '–' }}</td></tr>
                 </table>
- 
+                <a href="{{ url_for('uredi_projekt', projekt_id=projekt.id) }}" class="btn btn-outline-primary btn-sm">✏ Uredi projekt</a>
+                <form method="POST" action="{{ url_for('obrisi_projekt', projekt_id=projekt.id) }}" class="d-inline"
+                onsubmit="return confirm('Sigurno obrisati projekt i sve njegove bilješke?');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">🗑 Obriši projekt</button>
+                </form>
                 {% if projekt.opis %}
                 <p class="mb-1"><strong>Opis:</strong></p>
                 <p>{{ projekt.opis }}</p>
@@ -52,7 +61,6 @@
                               placeholder="Nova bilješka..." required></textarea>
                     <button type="submit" class="btn btn-primary btn-sm">Dodaj bilješku</button>
                 </form>
- 
                 {% if projekt.biljeske %}
                     {% for b in projekt.biljeske %}
                     <div class="border-start border-3 border-primary ps-3 mb-3">
@@ -60,6 +68,11 @@
                         <p class="text-muted small mb-0">
                             {{ b.ime or 'nepoznato' }} ·
                             {{ b.vrijeme.strftime('%d.%m.%Y. u %H:%M') if b.vrijeme else '' }}
+                                <a href="{{ url_for('uredi_biljesku', biljeska_id=b.id) }}" class="btn btn-link btn-sm p-0">uredi</a>
+                                <form method="POST" action="{{ url_for('obrisi_biljesku', biljeska_id=b.id) }}" class="d-inline"
+                                onsubmit="return confirm('Obrisati bilješku?');">
+                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0">obriši</button>
+                                </form>
                         </p>
                     </div>
                     {% endfor %}

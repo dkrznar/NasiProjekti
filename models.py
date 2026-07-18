@@ -19,6 +19,11 @@ class Projekt(db.Model):
     nas_iznos = db.Column(db.Float, default = 0.0)
     klasa = db.Column(db.String(50))
     opis = db.Column(db.Text)
+    datum_ugovora_financiranje = db.Column(db.Date)
+    datum_ugovora_nabava = db.Column(db.Date)
+    izvodac = db.Column(db.String(200))
+    datum_aneksa = db.Column(db.Date)
+    rok_izvrsenja = db.Column(db.Date)
 
     #pracenje unosa
     unio = db.Column(db.String(100))

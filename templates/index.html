@@ -4,7 +4,35 @@
 <div class="card shadow-sm">
     <div class="card-body">
         <h5 class="card-title mb-3">Pregled projekta</h5>
-
+        <form method="GET" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Svi statusi</option>
+                    {% for s in statusi %}
+                    <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="od" class="form-control form-control-sm" value="{{ request.args.get('od', '') }}" title="Početak od">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="do" class="form-control form-control-sm" value="{{ request.args.get('do', '') }}" title="Početak do">
+            </div>
+            <div class="col-md-3">
+                <select name="sort" class="form-select form-select-sm">
+                    <option value="pocetak_novi" {% if request.args.get('sort') == 'pocetak_novi' %}selected{% endif %}>Najnoviji početak</option>
+                    <option value="pocetak_stari" {% if request.args.get('sort') == 'pocetak_stari' %}selected{% endif %}>Najstariji početak</option>
+                    <option value="zavrsetak" {% if request.args.get('sort') == 'zavrsetak' %}selected{% endif %}>Datum završetka</option>
+                    <option value="abeceda" {% if request.args.get('sort') == 'abeceda' %}selected{% endif %}>Abecedno</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm">Filtriraj</button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">Poništi</a>
+            </div>
+        </form>
+        
         {% if projekti %}
         <div class="table-responsive">
             <table class="table table-hover table-striped align-middle">
