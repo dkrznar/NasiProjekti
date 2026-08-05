@@ -69,3 +69,71 @@ class Aneks(db.Model):
     datum = db.Column(db.Date, nullable=False)
     napomena = db.Column(db.String(300))   # npr. "produljenje roka za 60 dana"
     dodao = db.Column(db.String(100))
+
+KATEGORIJE = ["Socijalna skrb", "Sport", "Obrazovanje i vrtići", "Kultura"]
+STATUSI_ZAHTJEVA = ["Odobren", "Odbijen", "U obradi"]
+
+
+class Stavka(db.Model):
+    __tablename__ = "stavke"
+
+    id = db.Column(db.Integer, primary_key=True)
+    naziv = db.Column(db.String(200), nullable=False)      # npr. "Jednokratne novčane pomoći"
+    kategorija = db.Column(db.String(50), nullable=False)  # iz KATEGORIJE
+    godina = db.Column(db.Integer, nullable=False)         # proračunska godina, npr. 2026
+    opis = db.Column(db.Text)
+
+    unio = db.Column(db.String(100))
+    vrijeme_unosa = db.Column(db.DateTime, default=datetime.now)
+
+    proracuni = db.relationship(
+        "Proracun", backref="stavka",
+        cascade="all, delete-orphan",
+        order_by="Proracun.datum.desc(), Proracun.id.desc()",
+        lazy=True,
+    )
+    zahtjevi = db.relationship(
+        "Zahtjev", backref="stavka",
+        cascade="all, delete-orphan",
+        order_by="Zahtjev.datum.desc()",
+        lazy=True,
+    )
+
+    @property
+    def aktualni_proracun(self):
+        # Najnoviji zapis proračuna (izvorni ili zadnji rebalans)
+        if self.proracuni:
+            return self.proracuni[0].iznos
+        return 0.0
+
+    @property
+    def ukupno_isplaceno(self):
+        # Zbrajaju se samo ODOBRENI zahtjevi
+        return round(sum(z.iznos for z in self.zahtjevi if z.status == "Odobren"), 2)
+
+    @property
+    def preostalo(self):
+        return round((self.aktualni_proracun or 0) - self.ukupno_isplaceno, 2)
+
+
+class Proracun(db.Model):
+    __tablename__ = "proracuni"
+
+    id = db.Column(db.Integer, primary_key=True)
+    stavka_id = db.Column(db.Integer, db.ForeignKey("stavke.id"), nullable=False)
+    iznos = db.Column(db.Float, nullable=False)
+    datum = db.Column(db.Date, nullable=False)
+    napomena = db.Column(db.String(300))   # "izvorni proračun", "1. rebalans"...
+    dodao = db.Column(db.String(100))
+
+
+class Zahtjev(db.Model):
+    __tablename__ = "zahtjevi"
+
+    id = db.Column(db.Integer, primary_key=True)
+    stavka_id = db.Column(db.Integer, db.ForeignKey("stavke.id"), nullable=False)
+    datum = db.Column(db.Date, nullable=False)             # datum sjednice
+    status = db.Column(db.String(20), default="Odobren")
+    iznos = db.Column(db.Float, default=0.0)               # 0 kod odbijenih
+    napomena = db.Column(db.String(300))
+    unio = db.Column(db.String(100))

@@ -12,6 +12,9 @@ app.config["SECRET_KEY"] = "zabok123"
 
 db.init_app(app)
 
+from socijala import socijala
+app.register_blueprint(socijala)
+
 with app.app_context():
     db.create_all()
 
