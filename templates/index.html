@@ -3,7 +3,13 @@
 
 <div class="card shadow-sm">
     <div class="card-body">
-        <h5 class="card-title mb-3">Pregled projekta</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Pregled projekata</h5>
+        <div>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('novi_projekt') }}">+ Novi projekt</a>
+            <a class="btn btn-success btn-sm" href="{{ url_for('export_excel') }}">⬇ Export u Excel</a>
+    </div>
+</div>
         <form method="GET" class="row g-2 mb-3">
             <div class="col-md-3">
                 <select name="status" class="form-select form-select-sm">
@@ -67,9 +73,9 @@
                                 {% else %}bg-secondary{% endif %}">{{ p.status }}
                             </span>
                         </td>
-                        <td class="text-end">{{ '%.2f'|format(p.dobiveni_iznos or 0) }} €</td>
-                        <td class="text-end">{{ '%.2f'|format(p.nas_iznos or 0) }} €</td>
-                        <td class="text-end fw-semibold">{{ '%.2f'|format(p.ukupan_iznos) }} €</td>
+                        <td class="text-end text-nowrap">{{ (p.dobiveni_iznos or 0)|eur }}</td>
+                        <td class="text-end text-nowrap">{{ (p.nas_iznos or 0)|eur }}</td>
+                        <td class="text-end fw-semibold text-nowrap">{{ p.ukupan_iznos|eur }}</td>
                         <td class="text-truncate" style="max-width: 200px">{{ p.opis or '' }}</td>
 
                     </tr>

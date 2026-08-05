@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Početna{% endblock %}
+
+{% block sadrzaj %}
+<div class="text-center mb-4">
+    <h3>Evidencije Grada Zaboka</h3>
+    <p class="text-muted">Odaberi područje rada</p>
+</div>
+
+<div class="row g-3 justify-content-center">
+
+    <div class="col-md-4">
+        <a href="{{ url_for('index') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100 text-center kartica-aktivna">
+                <div class="card-body py-4">
+                    <div class="fs-1">📋</div>
+                    <h5 class="card-title mb-1">Projekti</h5>
+                    <p class="text-muted small mb-0">Natječaji, ugovori, provedba</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center kartica-uskoro">
+            <div class="card-body py-4">
+                <div class="fs-1">🤝</div>
+                <h5 class="card-title mb-1">Socijalna skrb</h5>
+                <p class="text-muted small mb-0">Uskoro</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center kartica-uskoro">
+            <div class="card-body py-4">
+                <div class="fs-1">⚽</div>
+                <h5 class="card-title mb-1">Sport</h5>
+                <p class="text-muted small mb-0">Uskoro</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center kartica-uskoro">
+            <div class="card-body py-4">
+                <div class="fs-1">📑</div>
+                <h5 class="card-title mb-1">Javna nabava</h5>
+                <p class="text-muted small mb-0">Uskoro</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center kartica-uskoro">
+            <div class="card-body py-4">
+                <div class="fs-1">🎓</div>
+                <h5 class="card-title mb-1">Obrazovanje i vrtići</h5>
+                <p class="text-muted small mb-0">Uskoro</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center kartica-uskoro">
+            <div class="card-body py-4">
+                <div class="fs-1">🎭</div>
+                <h5 class="card-title mb-1">Kultura</h5>
+                <p class="text-muted small mb-0">Uskoro</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .kartica-aktivna { transition: transform .15s, box-shadow .15s; }
+    .kartica-aktivna:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important; }
+    .kartica-uskoro { opacity: .55; }
+</style>
+{% endblock %}

@@ -20,7 +20,19 @@ def parsiraj_datum(vrijednost):
         return datetime.strptime(vrijednost, "%Y-%m-%d").date()
     return None
 
+@app.template_filter("eur")
+def eur(vrijednost):
+    if vrijednost is None:
+        vrijednost = 0
+    s = f"{vrijednost:,.2f}"
+    s = s.replace(",", "X").replace(".",",").replace("X", ".")
+    return s + "\u00a0€"
+
 @app.route("/")
+def pocetna():
+    return render_template("pocetna.html")
+
+@app.route("/projekti")
 def index():
     upit = Projekt.query
 

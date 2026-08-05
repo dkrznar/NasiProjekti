@@ -2,6 +2,7 @@
 {% block title %}{{ projekt.naziv }}{% endblock %}
  
 {% block sadrzaj %}
+<a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">← Natrag</a>
 <div class="row">
     <!-- Lijevo: detalji projekta -->
     <div class="col-lg-7 mb-4">
@@ -23,9 +24,9 @@
                     <tr><th>Nadležno tijelo</th><td>{{ projekt.nadlezno_tijelo or '–' }}</td></tr>
                     <tr><th>Datum početka</th><td>{{ projekt.datum_pocetka.strftime('%d.%m.%Y.') if projekt.datum_pocetka else '–' }}</td></tr>
                     <tr><th>Datum završetka</th><td>{{ projekt.datum_zavrsetka.strftime('%d.%m.%Y.') if projekt.datum_zavrsetka else '–' }}</td></tr>
-                    <tr><th>Dobiveni iznos</th><td>{{ '%.2f'|format(projekt.dobiveni_iznos or 0) }} €</td></tr>
-                    <tr><th>Vlastiti iznos</th><td>{{ '%.2f'|format(projekt.nas_iznos or 0) }} €</td></tr>
-                    <tr><th>Ukupan iznos</th><td class="fw-semibold">{{ '%.2f'|format(projekt.ukupan_iznos) }} €</td></tr>
+                    <tr><th>Dobiveni iznos</th><td>{{ (projekt.dobiveni_iznos or 0)|eur }}</td></tr>
+                    <tr><th>Vlastiti iznos</th><td>{{ (projekt.nas_iznos or 0)|eur }}</td></tr>
+                    <tr><th>Ukupan iznos</th><td class="fw-semibold">{{ projekt.ukupan_iznos|eur }}</td></tr>
                     <tr><th>Ugovor o financiranju</th><td>{{ projekt.datum_ugovora_financiranje.strftime('%d.%m.%Y.') if projekt.datum_ugovora_financiranje else '–' }}</td></tr>
                     <tr><th>Ugovor o nabavi</th><td>{{ projekt.datum_ugovora_nabava.strftime('%d.%m.%Y.') if projekt.datum_ugovora_nabava else '–' }}</td></tr>
                     <tr><th>Izvođač</th><td>{{ projekt.izvodac or '–' }}</td></tr>
