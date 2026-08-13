@@ -1,27 +1,34 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from datetime import datetime
-from models import db, Projekt, Biljeska, STATUSI, Aneks
+from models import db, Projekt, Biljeska, STATUSI, Aneks, ULOGE
 from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
+from pomocno import parsiraj_datum, admin_required
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///projekti.db"
 app.config["SECRET_KEY"] = "zabok123"
 
 db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "prijava" 
+
+from models import Korisnik
+
+@login_manager.user_loader
+def ucitaj_korisnika(korisnik_id):
+    return Korisnik.query.get(int(korisnik_id))
 
 from socijala import socijala
 app.register_blueprint(socijala)
 
 with app.app_context():
     db.create_all()
-
-def parsiraj_datum(vrijednost):
-    if vrijednost:
-        return datetime.strptime(vrijednost, "%Y-%m-%d").date()
-    return None
 
 @app.template_filter("eur")
 def eur(vrijednost):
@@ -84,7 +91,7 @@ def novi_projekt():
             datum_ugovora_nabava=parsiraj_datum(request.form.get("datum_ugovora_nabava")),
             izvodac=request.form.get("izvodac", "").strip(),
             rok_izvrsenja=parsiraj_datum(request.form.get("rok_izvrsenja")),
-            unio=request.cookies.get("korisnik"),
+            unio=current_user.ime_prezime,
         )
         db.session.add(p)
         db.session.commit()
@@ -114,7 +121,7 @@ def uredi_projekt(projekt_id):
         projekt.datum_ugovora_nabava=parsiraj_datum(request.form.get("datum_ugovora_nabava"))
         projekt.izvodac=request.form.get("izvodac", "").strip()
         projekt.rok_izvrsenja=parsiraj_datum(request.form.get("rok_izvrsenja"))
-        projekt.izmijenio=request.cookies.get("korisnik")
+        projekt.izmijenio=current_user.ime_prezime
         projekt.vrijeme_izmjene = datetime.now()
 
         db.session.commit()
@@ -143,7 +150,7 @@ def novi_aneks(projekt_id):
         projekt_id=projekt.id,
         datum=parsiraj_datum(request.form.get("datum")),
         napomena=request.form.get("napomena", "").strip(),
-        dodao=request.cookies.get("korisnik"),
+        dodao=current_user.ime_prezime,
     )
     db.session.add(a)
     db.session.commit()
@@ -165,7 +172,7 @@ def nova_biljeska(projekt_id):
     b = Biljeska(
         projekt_id=projekt.id,
         tekst=request.form["tekst"].strip(),
-        ime=request.cookies.get("korisnik"),
+        ime=current_user.ime_prezime,
     )
     db.session.add(b)
     db.session.commit()
@@ -265,13 +272,122 @@ def postavi_ime():
     return render_template("ime.html", next=request.args.get("next", ""))
 
 @app.before_request
-def provjeri_ime():
-    if request.endpoint in ("postavi_ime", "static"):
+def provjeri_prijavu():
+    if request.endpoint in ("prijava", "static"):
         return
-    if not request.cookies.get("korisnik"):
-        return redirect(url_for("postavi_ime", next=request.url))
+    if not current_user.is_authenticated:
+        return redirect(url_for("prijava", next=request.url))
+    if request.endpoint not in ("promijeni_svoju_lozinku", "odjava") and current_user.mora_promijeniti_lozinku:
+        return redirect(url_for("promijeni_svoju_lozinku"))
+
+@app.route("/prijava", methods=["GET", "POST"])
+def prijava():
+    if request.method == "POST":
+        korisnicko_ime = request.form["korisnicko_ime"].strip()
+        lozinka = request.form["lozinka"]
+
+        korisnik = Korisnik.query.filter_by(korisnicko_ime=korisnicko_ime).first()
+
+        if korisnik and korisnik.aktivan and korisnik.provjeri_lozinku(lozinka):
+            login_user(korisnik)
+            if korisnik.mora_promijeniti_lozinku:
+                flash("Molimo postavite novu lozinku.", "warning")
+                return redirect(url_for("promijeni_svoju_lozinku"))
+            flash(f"Dobrodošla/o, {korisnik.ime_prezime}!", "success")
+            return redirect(request.args.get("next") or url_for("pocetna"))
+        else:
+            flash("Pogrešno korisničko ime ili lozinka.", "danger")
+
+    return render_template("prijava.html")
+
+
+@app.route("/odjava")
+@login_required
+def odjava():
+    logout_user()
+    flash("Uspješno ste se odjavili.", "success")
+    return redirect(url_for("prijava"))
+
+@app.route("/korisnici")
+@admin_required
+def korisnici():
+    popis = Korisnik.query.order_by(Korisnik.korisnicko_ime.asc()).all()
+    return render_template("korisnici.html", korisnici=popis, uloge=ULOGE)
+
+
+@app.route("/korisnici/novi", methods=["POST"])
+@admin_required
+def novi_korisnik():
+    if Korisnik.query.filter_by(korisnicko_ime=request.form["korisnicko_ime"].strip()).first():
+        flash("Korisničko ime već postoji.", "danger")
+        return redirect(url_for("korisnici"))
+
+    k = Korisnik(
+        korisnicko_ime=request.form["korisnicko_ime"].strip(),
+        ime_prezime=request.form["ime_prezime"].strip(),
+        uloga=request.form.get("uloga", "urednik"),
+    )
+    k.postavi_lozinku(request.form["lozinka"])
+    db.session.add(k)
+    db.session.commit()
+    flash(f"Korisnik {k.ime_prezime} je dodan.", "success")
+    return redirect(url_for("korisnici"))
+
+
+@app.route("/korisnici/<int:korisnik_id>/deaktiviraj", methods=["POST"])
+@admin_required
+def deaktiviraj_korisnika(korisnik_id):
+    k = Korisnik.query.get_or_404(korisnik_id)
+    k.aktivan = not k.aktivan   # preklopnik: uključi/isključi
+    db.session.commit()
+    flash(f"Korisnik {k.ime_prezime} je {'aktiviran' if k.aktivan else 'deaktiviran'}.", "success")
+    return redirect(url_for("korisnici"))
+
+
+@app.route("/korisnici/<int:korisnik_id>/reset-lozinke", methods=["POST"])
+@admin_required
+def reset_lozinke(korisnik_id):
+    k = Korisnik.query.get_or_404(korisnik_id)
+    k.postavi_lozinku(request.form["nova_lozinka"])
+    k.mora_promijeniti_lozinku = True
+    db.session.commit()
+    flash(f"Lozinka za {k.ime_prezime} je promijenjena.", "success")
+    return redirect(url_for("korisnici"))
+
+@app.route("/korisnici/<int:korisnik_id>/promijeni-ulogu", methods=["POST"])
+@admin_required
+def promijeni_ulogu(korisnik_id):
+    k = Korisnik.query.get_or_404(korisnik_id)
+    k.uloga = request.form.get("uloga", k.uloga)
+    db.session.commit()
+    flash(f"Uloga za {k.ime_prezime} je promijenjena u '{k.uloga}'.", "success")
+    return redirect(url_for("korisnici"))
+
+
+@app.route("/moja-lozinka", methods=["GET", "POST"])
+@login_required
+def promijeni_svoju_lozinku():
+    if request.method == "POST":
+        nova = request.form["nova_lozinka"]
+        ponovljena = request.form["ponovljena_lozinka"]
+
+        if nova != ponovljena:
+            flash("Lozinke se ne podudaraju.", "danger")
+            return redirect(url_for("promijeni_svoju_lozinku"))
+
+        if len(nova) < 6:
+            flash("Lozinka mora imati barem 6 znakova.", "danger")
+            return redirect(url_for("promijeni_svoju_lozinku"))
+
+        current_user.postavi_lozinku(nova)
+        current_user.mora_promijeniti_lozinku = False
+        db.session.commit()
+        flash("Lozinka je uspješno promijenjena.", "success")
+        return redirect(url_for("pocetna"))
+
+    return render_template("promijeni_lozinku.html")
 
 if __name__ == "__main__":
     from waitress import serve
-    print("Aplikacija radi na http://0.0.0:5000")
+    print("Aplikacija radi na http://192.168.0.13:5000")
     serve(app, host="0.0.0.0", port=5000)

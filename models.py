@@ -1,5 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
@@ -137,3 +139,26 @@ class Zahtjev(db.Model):
     iznos = db.Column(db.Float, default=0.0)               # 0 kod odbijenih
     napomena = db.Column(db.String(300))
     unio = db.Column(db.String(100))
+
+ULOGE = ["admin", "urednik", "pregled"]
+
+class Korisnik(UserMixin, db.Model):
+    __tablename__ = "korisnici"
+
+    id = db.Column(db.Integer, primary_key=True)
+    korisnicko_ime = db.Column(db.String(50), unique=True, nullable=False)
+    ime_prezime = db.Column(db.String(100), nullable=False)
+    lozinka_hash = db.Column(db.String(200), nullable=False)
+    uloga = db.Column(db.String(20), default="urednik")
+    aktivan = db.Column(db.Boolean, default=True)
+    mora_promijeniti_lozinku = db.Column(db.Boolean, default=True)
+
+    def postavi_lozinku(self, lozinka):
+        self.lozinka_hash = generate_password_hash(lozinka)
+
+    def provjeri_lozinku(self, lozinka):
+        return check_password_hash(self.lozinka_hash, lozinka)
+
+    @property
+    def je_admin(self):
+        return self.uloga == "admin"
