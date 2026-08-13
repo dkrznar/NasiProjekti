@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Korisnici{% endblock %}
+
+{% block sadrzaj %}
+<a href="{{ url_for('pocetna') }}" class="btn btn-outline-secondary btn-sm mb-3">← Natrag</a>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Korisnici</h5>
+
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Ime i prezime</th>
+                    <th>Korisničko ime</th>
+                    <th>Uloga</th>
+                    <th>Status</th>
+                    <th>Akcije</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in korisnici %}
+                <tr>
+                    <td>{{ k.ime_prezime }}</td>
+                    <td>{{ k.korisnicko_ime }}</td>
+                    <td>{{ k.uloga }}</td>
+                    <td>
+                        <span class="badge {% if k.aktivan %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ 'Aktivan' if k.aktivan else 'Neaktivan' }}
+                        </span>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('deaktiviraj_korisnika', korisnik_id=k.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                {{ 'Deaktiviraj' if k.aktivan else 'Aktiviraj' }}
+                            </button>
+                        </form>
+
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#reset-{{ k.id }}">
+                            Nova lozinka
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#uloga-{{ k.id }}">
+                            Uloga
+                        </button>
+                    </td>
+                </tr>
+                <tr class="collapse" id="reset-{{ k.id }}">
+                    <td colspan="5">
+                        <form method="POST" action="{{ url_for('reset_lozinke', korisnik_id=k.id) }}" class="d-flex gap-2">
+                            <input type="text" name="nova_lozinka" class="form-control form-control-sm" placeholder="Nova lozinka" required>
+                            <button type="submit" class="btn btn-primary btn-sm">Spremi</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr class="collapse" id="uloga-{{ k.id }}">
+                    <td colspan="5">
+                        <form method="POST" action="{{ url_for('promijeni_ulogu', korisnik_id=k.id) }}" class="d-flex gap-2">
+                            <select name="uloga" class="form-select form-select-sm" style="max-width: 200px">
+                                {% for u in uloge %}
+                                <option value="{{ u }}" {% if u == k.uloga %}selected{% endif %}>{{ u }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Spremi</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h6>Novi korisnik</h6>
+        <form method="POST" action="{{ url_for('novi_korisnik') }}" class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="ime_prezime" class="form-control form-control-sm" placeholder="Ime i prezime" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="korisnicko_ime" class="form-control form-control-sm" placeholder="Korisničko ime" required>
+            </div>
+            <div class="col-md-2">
+                <select name="uloga" class="form-select form-select-sm">
+                    {% for u in uloge %}
+                    <option value="{{ u }}" {% if u == "urednik" %}selected{% endif %}>{{ u }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="lozinka" class="form-control form-control-sm" placeholder="Privremena lozinka" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Dodaj</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ stavka.naziv }}{% endblock %}
+
+{% block sadrzaj %}
+<a href="{{ url_for('socijala.stavke', godina=stavka.godina) }}" class="btn btn-outline-secondary btn-sm mb-3">← Natrag</a>
+
+<div class="row">
+    <!-- Lijevo: brojke i proračun -->
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title">{{ stavka.naziv }}</h4>
+                <p class="text-muted small">{{ stavka.godina }}. godina{% if stavka.opis %} — {{ stavka.opis }}{% endif %}</p>
+
+                <table class="table table-sm mt-3">
+                    <tr><th>Aktualni proračun</th><td>{{ stavka.aktualni_proracun|eur }}</td></tr>
+                    <tr><th>Ukupno isplaćeno</th><td>{{ stavka.ukupno_isplaceno|eur }}</td></tr>
+                    <tr><th>Preostalo</th><td class="fw-bold fs-5">{{ stavka.preostalo|eur }}</td></tr>
+                </table>
+
+                <h6 class="mt-4">Izmjena proračuna (rebalans)</h6>
+                <form method="POST" action="{{ url_for('socijala.novi_proracun', stavka_id=stavka.id) }}" class="row g-2 mb-2">
+                    <div class="col-5"><input type="number" step="0.01" name="iznos" class="form-control form-control-sm" placeholder="Novi iznos" required></div>
+                    <div class="col-4"><input type="date" name="datum" class="form-control form-control-sm" required></div>
+                    <div class="col-3"><button type="submit" class="btn btn-primary btn-sm w-100">Dodaj</button></div>
+                    <div class="col-12"><input type="text" name="napomena" class="form-control form-control-sm" placeholder="Napomena (npr. 1. rebalans)"></div>
+                </form>
+
+                {% if stavka.proracuni %}
+                    {% for pr in stavka.proracuni %}
+                    <p class="small mb-1">
+                        💰 {{ pr.datum.strftime('%d.%m.%Y.') }} — {{ pr.iznos|eur }}
+                        {% if pr.napomena %} ({{ pr.napomena }}){% endif %}
+                        <span class="text-muted">— {{ pr.dodao or 'nepoznato' }}</span>
+                        <form method="POST" action="{{ url_for('socijala.obrisi_proracun', proracun_id=pr.id) }}" class="d-inline"
+                              onsubmit="return confirm('Obrisati ovaj zapis proračuna?');">
+                            <button type="submit" class="btn btn-link btn-sm text-danger p-0">obriši</button>
+                        </form>
+                    </p>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted small">Proračun još nije unesen.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Desno: zahtjevi -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Zahtjevi</h5>
+
+                <form method="POST" action="{{ url_for('socijala.novi_zahtjev', stavka_id=stavka.id) }}" class="row g-2 mb-3">
+                    <div class="col-md-3">
+                        <input type="date" name="datum" class="form-control form-control-sm"
+                               value="{{ request.args.get('datum', '') }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select form-select-sm">
+                            {% for st in statusi %}
+                            <option value="{{ st }}">{{ st }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" step="0.01" name="iznos" class="form-control form-control-sm" placeholder="Iznos">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="napomena" class="form-control form-control-sm" placeholder="Napomena / ime">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary btn-sm">Dodaj zahtjev</button>
+                    </div>
+                </form>
+
+                {% if stavka.zahtjevi %}
+                    {% for z in stavka.zahtjevi %}
+                    <div class="border-start border-3 {% if z.status == 'Odbijen' %}border-danger{% else %}border-primary{% endif %} ps-3 mb-2">
+                        <p class="mb-0">
+                            {{ z.datum.strftime('%d.%m.%Y.') }} —
+                            <span class="badge {% if z.status == 'Odobren' %}bg-success{% elif z.status == 'Odbijen' %}bg-danger{% else %}bg-secondary{% endif %}">{{ z.status }}</span>
+                            {{ z.iznos|eur }}
+                            {% if z.napomena %} — {{ z.napomena }}{% endif %}
+                            <span class="text-muted small">({{ z.unio or 'nepoznato' }})</span>
+                            <form method="POST" action="{{ url_for('socijala.obrisi_zahtjev', zahtjev_id=z.id) }}" class="d-inline"
+                                  onsubmit="return confirm('Obrisati zahtjev?');">
+                                <button type="submit" class="btn btn-link btn-sm text-danger p-0">obriši</button>
+                            </form>
+                        </p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">Još nema zahtjeva.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

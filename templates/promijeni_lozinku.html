@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Postavi lozinku{% endblock %}
+
+{% block sadrzaj %}
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Postavi novu lozinku</h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Nova lozinka</label>
+                        <input type="password" name="nova_lozinka" class="form-control" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ponovi lozinku</label>
+                        <input type="password" name="ponovljena_lozinka" class="form-control" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Spremi lozinku</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

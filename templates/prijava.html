@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Prijava{% endblock %}
+
+{% block sadrzaj %}
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Prijava</h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Korisničko ime</label>
+                        <input type="text" name="korisnicko_ime" class="form-control" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lozinka</label>
+                        <input type="password" name="lozinka" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Prijavi se</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
